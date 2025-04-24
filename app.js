@@ -1,8 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { HOST, PORT, CLIENT_ORIGIN } from "./src/config/env.js";
 import connectToMongoDB from "./src/database/mongodb.js";
 import cookieParser from "cookie-parser";
+
+import { HOST, PORT, CLIENT_ORIGIN } from "./src/config/env.js";
+
+// Routes import
+import userRouter from "./src/routes/user.route.js";
 
 const app = express();
 
@@ -18,9 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// Routes declaration
+app.use("/api/v1/user", userRouter);
+
 
 app.listen(PORT, HOST || "localhost", () => {
   console.log(`Server running at http://${HOST || "localhost"}:${PORT}`);
