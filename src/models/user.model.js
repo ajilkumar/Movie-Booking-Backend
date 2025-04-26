@@ -59,7 +59,7 @@ userSchema.methods.comparePassword = async function (password) {
 userSchema.methods.generateAccessToken = function () {
   // payload to encode in the token
   return jwt.sign(
-    { id: this._id, name: this.name, role: this.role },
+    { _id: this._id, name: this.name, role: this.role },
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
