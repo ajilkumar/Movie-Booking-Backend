@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const userSchema = new Schema(
   {
@@ -36,11 +37,27 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      select: false,
+    },
+    emailVerificationTokenExpiry: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Create indexed for email verification
+userSchema.index({ emailVerificationToken: 1 });
+userSchema.index({ emailVerificationTokenExpiry: 1 });
 
 // Added a pre-save hook to hash the password before saving the user
 userSchema.pre("save", async function (next) {
@@ -78,6 +95,17 @@ userSchema.methods.generateRefreshToken = function () {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
     }
   );
+};
+
+// Added a method to generate an email verification token for the user
+userSchema.methods.generateEmailVerificationToken = function () {
+  const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+  const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  this.emailVerificationToken = emailVerificationToken;
+  this.emailVerificationTokenExpiry = emailVerificationExpiry;
+
+  return emailVerificationToken;
 };
 
 export const User = mongoose.model("User", userSchema);

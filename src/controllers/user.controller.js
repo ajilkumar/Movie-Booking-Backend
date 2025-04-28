@@ -4,6 +4,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { REFRESH_TOKEN_SECRET } from "../config/env.js";
+import { sendVerificationEmail } from "../utils/SendVerificationEmail.js";
 
 // Generate access token and refresh token
 const generateAccessTokenAndRefreshToken = async (userId) => {
@@ -57,6 +58,15 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
   });
+
+  // Generate email verification token
+  const emailVerificationToken = user.generateEmailVerificationToken();
+
+  await user.save({ validateBeforeSave: false });
+
+  // Send the email verification with the link to the user
+  const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/user/verify-email?token=${emailVerificationToken}`;
+  sendVerificationEmail(user, verificationUrl, res);
 
   // remove password and refresh token from response
   const createdUser = await User.findByIdAndUpdate(user._id).select(
@@ -251,10 +261,48 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully."));
 });
 
+// Verify email
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    throw new ApiError(400, "Token is required");
+  }
+
+  const user = await User.findOne({
+    $or: [{ emailVerificationToken: token }, { isVerified: true }],
+  }).select("+emailVerificationToken +emailVerificationTokenExpiry");
+
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired token.");
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(400, "Email already verified. Please login.");
+  }
+
+  if (user.emailVerificationTokenExpiry < Date.now()) {
+    throw new ApiError(
+      400,
+      "Token has expired. Please request a new verification email."
+    );
+  }
+
+  user.isVerified = true;
+  user.emailVerificationToken = undefined;
+  user.emailVerificationTokenExpiry = undefined;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Email verified successfully."));
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   refreshAccessToken,
   changeCurrentPassword,
+  verifyEmail,
 };
