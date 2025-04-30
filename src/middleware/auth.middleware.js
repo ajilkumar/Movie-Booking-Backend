@@ -33,4 +33,16 @@ const verifyJWT = asyncHandler(async (req, _, next) => {
   }
 });
 
-export { verifyJWT };
+const isAdmin = asyncHandler(async (req, res, next) => {
+  try {
+    const role = req.user.role;
+    if (role !== "admin") {
+      throw new ApiError(403, "Forbidden access. Admins only.");
+    }
+    next();
+  } catch (error) {
+    throw new ApiError(403, error?.message || "Forbidden access");
+  }
+});
+
+export { verifyJWT, isAdmin };
