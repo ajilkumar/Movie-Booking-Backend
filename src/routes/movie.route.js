@@ -1,5 +1,13 @@
 import { Router } from "express";
-import { createMovie } from "../controllers/movie.controller.js";
+import {
+  createMovie,
+  deleteMovie,
+  getAllMovies,
+  getMovieById,
+  updateCoverImage,
+  updateMainImage,
+  updateMovie,
+} from "../controllers/movie.controller.js";
 import { isAdmin, verifyJWT } from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -15,5 +23,24 @@ movieRouter.route("/create").post(
   isAdmin,
   createMovie
 );
+movieRouter.route("/allmovies").get(verifyJWT, isAdmin, getAllMovies);
+movieRouter.route("/:movieId").get(verifyJWT, isAdmin, getMovieById);
+movieRouter.route("/update/:movieId").patch(verifyJWT, isAdmin, updateMovie);
+movieRouter.put(
+  "/update-main-image/:movieId",
+  verifyJWT,
+  isAdmin,
+  upload.single("mainImage"),
+  updateMainImage
+);
+
+movieRouter.put(
+  "/update-cover-image/:movieId",
+  verifyJWT,
+  isAdmin,
+  upload.single("coverImage"),
+  updateCoverImage
+);
+movieRouter.route("/delete/:movieId").delete(verifyJWT, isAdmin, deleteMovie);
 
 export default movieRouter;
