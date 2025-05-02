@@ -8,6 +8,7 @@ import { HOST, PORT, CLIENT_ORIGIN } from "./src/config/env.js";
 // Routes import
 import userRouter from "./src/routes/user.route.js";
 import movieRouter from "./src/routes/movie.route.js";
+import showRouter from "./src/routes/show.route.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use(cookieParser());
 // Routes declaration
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/movie", movieRouter);
+app.use("/api/v1/show", showRouter);
 
 app.listen(PORT, HOST || "localhost", () => {
   console.log(`Server running at http://${HOST || "localhost"}:${PORT}`);
