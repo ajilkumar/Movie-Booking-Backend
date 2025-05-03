@@ -9,6 +9,7 @@ import { HOST, PORT, CLIENT_ORIGIN } from "./src/config/env.js";
 import userRouter from "./src/routes/user.route.js";
 import movieRouter from "./src/routes/movie.route.js";
 import showRouter from "./src/routes/show.route.js";
+import bookingRouter from "./src/routes/booking.route.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/movie", movieRouter);
 app.use("/api/v1/show", showRouter);
+app.use("/api/v1/booking", bookingRouter);
 
 app.listen(PORT, HOST || "localhost", () => {
   console.log(`Server running at http://${HOST || "localhost"}:${PORT}`);
